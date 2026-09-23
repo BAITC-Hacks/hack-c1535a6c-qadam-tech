@@ -3,7 +3,6 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-backend/data/candidates.json
 
 # Node / Vite
 node_modules/
