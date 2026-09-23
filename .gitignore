@@ -1,6 +1,13 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 backend/data/candidates.json
+
+# Secrets
 .env
+.env.*
+!.env.example
+
 .DS_Store
