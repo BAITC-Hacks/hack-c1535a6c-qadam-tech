@@ -2,6 +2,8 @@
 
 ### Подрядчики для вашего мероприятия.
 
+**Сайт: [toi-tap.aribzhan.kz](https://toi-tap.aribzhan.kz)**
+
 **React 19 · TypeScript · FastAPI · OpenAI**
 
 Хакатон-проект команды **Qadam Tech**.
