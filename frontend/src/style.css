@@ -50,3 +50,42 @@ select option { color: var(--text); background: var(--surface); }
 .excluded summary { cursor: pointer; color: var(--secondary); font-weight: 600; }
 .excluded ul { margin: 10px 0 0; padding-left: 18px; line-height: 1.8; }
 .results > .constraint-note { margin: 0 0 16px; }
+
+/* Branded form controls (appearance: base-select; Firefox falls back to the native select). */
+.brand-select, .brand-select::picker(select) { appearance: base-select; }
+.brand-select { border: 0; background: transparent; color: var(--text); font-size: 12px; font-weight: 550; padding: 0 2px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.brand-select::picker-icon { color: var(--muted); transition: rotate .2s; }
+.brand-select:open::picker-icon { rotate: 180deg; }
+.brand-select::picker(select) { margin-top: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 6px; box-shadow: 0 14px 40px #10281d24; min-width: 180px; }
+.brand-select option { padding: 9px 12px; border-radius: 6px; font-size: 13px; background: transparent; color: var(--text); cursor: pointer; }
+.brand-select option:hover, .brand-select option:focus-visible { background: var(--soft); color: var(--green); outline: none; }
+.brand-select option:checked { font-weight: 700; color: var(--green); }
+.brand-select option::checkmark { color: var(--green); }
+.expanded-filters .brand-select { width: 100%; padding: 9px 10px; margin-top: 5px; background: var(--bg); border: 1px solid var(--control-border); border-radius: 5px; justify-content: space-between; font-weight: 500; }
+.expanded-filters input::-webkit-inner-spin-button, .expanded-filters input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.expanded-filters input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+.datepicker { position: relative; }
+.datepicker-trigger { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 7px 12px; background: var(--surface); border: 1px solid var(--control-border); border-radius: 5px; font-size: 12px; font-weight: 550; color: var(--text); }
+.datepicker-trigger svg { color: var(--muted); }
+.datepicker-trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 14%, transparent); }
+.datepicker-popover { position: absolute; z-index: 40; top: calc(100% + 10px); left: 0; width: 296px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; box-shadow: 0 18px 50px #10281d2e; animation: dp-in .14s ease-out; }
+@keyframes dp-in { from { opacity: 0; transform: translateY(-4px); } }
+.datepicker-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.datepicker-head strong { font-size: 14px; font-weight: 700; text-transform: capitalize; }
+.datepicker-nav { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.datepicker-nav:hover:not(:disabled) { background: var(--soft); color: var(--green); }
+.datepicker-nav:disabled { opacity: .35; cursor: default; }
+.datepicker-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.datepicker-weekday { font-size: 10px; font-weight: 700; color: var(--muted); text-align: center; padding: 4px 0 6px; letter-spacing: .4px; }
+.datepicker-day { aspect-ratio: 1; border: 0; border-radius: 8px; background: transparent; font-size: 12px; font-weight: 550; color: var(--text); }
+.datepicker-weekday.weekend, .datepicker-day.weekend { color: #b0674f; }
+.app.dark .datepicker-weekday.weekend, .app.dark .datepicker-day.weekend { color: #f0a58e; }
+.datepicker-day.outside { color: var(--muted); opacity: .45; }
+.datepicker-day:hover:not(:disabled) { background: var(--soft); color: var(--green); }
+.datepicker-day:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.datepicker-day.selected { background: var(--button-bg); color: var(--button-text); font-weight: 750; }
+.datepicker-day:disabled { opacity: .2; cursor: default; }
+.datepicker-foot { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 10px; color: var(--muted); text-align: center; }
+@media (max-width: 700px) { .datepicker-popover { width: min(296px, calc(100vw - 40px)); } }
+.brand-select::picker-icon { content: ''; width: 13px; height: 13px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat; }

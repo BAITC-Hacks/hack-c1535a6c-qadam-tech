@@ -1,7 +1,8 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowUpRight, ArrowRight, Sparkles, MapPin, CalendarDays, SlidersHorizontal, X, Moon, Sun, Check, Heart, Camera, Video, Mic2, Music, Flower2, ShieldCheck, ChevronDown, LoaderCircle, Search, Bookmark, Building2, Gift, Users, FlaskConical, type LucideIcon } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, Sparkles, MapPin, SlidersHorizontal, X, Moon, Sun, Check, Heart, Camera, Video, Mic2, Music, Flower2, ShieldCheck, ChevronDown, LoaderCircle, Search, Bookmark, Building2, Gift, Users, FlaskConical, type LucideIcon } from 'lucide-react';
 import { fetchFacets, formatDate, mergeParsed, money, parseText, REASON_LABEL, searchContractors, validate, type Card, type Facets, type SearchParams, type SearchResponse } from './api';
+import { DatePicker } from './DatePicker';
 import './style.css';
 
 const initial: SearchParams = { city: 'Алматы', event_date: '2026-10-15', event_type: 'свадьба', category: 'Ведущий', budget: 1500000, duration: null, language: null };
@@ -144,16 +145,16 @@ function App() {
           </div>
           <div className="search-bottom">
             <div className="quick-filters">
-              <label><MapPin size={15} /><select aria-label="Город" value={params.city} onChange={e => change('city', e.target.value)}>{facets?.cities.map(c => <option key={c}>{c}</option>)}</select></label>
-              <label><CalendarDays size={15} /><input aria-label="Дата события" type="date" min={facets?.date_min} max={facets?.date_max} value={params.event_date} onChange={e => change('event_date', e.target.value)} /></label>
-              <label><select aria-label="Формат" value={params.event_type} onChange={e => change('event_type', e.target.value)}>{facets?.event_formats.map(x => <option key={x}>{x}</option>)}</select></label>
+              <label><MapPin size={15} /><select className="brand-select" aria-label="Город" value={params.city} onChange={e => change('city', e.target.value)}>{facets?.cities.map(c => <option key={c}>{c}</option>)}</select></label>
+              {facets && <DatePicker value={params.event_date} min={facets.date_min} max={facets.date_max} onChange={v => change('event_date', v)} />}
+              <label><select className="brand-select" aria-label="Формат" value={params.event_type} onChange={e => change('event_type', e.target.value)}>{facets?.event_formats.map(x => <option key={x}>{x}</option>)}</select></label>
               <button type="button" aria-expanded={filters} aria-controls="search-filters" className={filters ? 'filter-button active' : 'filter-button'} onClick={() => setFilters(!filters)}><SlidersHorizontal size={15} /> Параметры <ChevronDown size={13} /></button>
             </div>
             <span className="search-hint">Одна идея → до 3 точных рекомендаций</span>
           </div>
           {filters && <div id="search-filters" className="expanded-filters">
-            <label>Бюджет, ₸<input type="number" min="1" value={params.budget} onChange={e => change('budget', Number(e.target.value))} /></label>
-            <label>Язык<select value={params.language ?? ''} onChange={e => change('language', e.target.value || null)}><option value="">Любой</option>{facets?.languages.map(x => <option key={x}>{x}</option>)}</select></label>
+            <label>Бюджет, ₸<input inputMode="numeric" value={params.budget ? money(params.budget) : ''} onChange={e => change('budget', Number(e.target.value.replace(/\D/g, '')))} /></label>
+            <label>Язык<select className="brand-select" value={params.language ?? ''} onChange={e => change('language', e.target.value || null)}><option value="">Любой</option>{facets?.languages.map(x => <option key={x}>{x}</option>)}</select></label>
             <label>Длительность, ч<input type="number" min="1" max="24" placeholder="не важно" value={params.duration ?? ''} onChange={e => change('duration', e.target.value ? Number(e.target.value) : null)} /></label>
           </div>}
         </form>
