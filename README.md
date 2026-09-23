@@ -84,37 +84,77 @@ flowchart LR
 
 ## Быстрый старт
 
-Нужны **Python 3.12+**, **Node.js 22.12+** и npm.
+Основной способ запуска — **Docker Compose**: frontend с Nginx и backend FastAPI поднимаются одной командой. Нужны Git, Docker Engine / Docker Desktop и **Docker Compose 2.24+**. Локальные Python, Node.js и npm для запуска не требуются.
+
+### 1. Получите проект
 
 ```bash
 git clone --branch main git@github.com:BAITC-Hacks/hack-c1535a6c-qadam-tech.git
 cd hack-c1535a6c-qadam-tech
 ```
 
-В первом терминале запустите backend:
+Для клонирования нужен доступ к репозиторию и SSH-ключ, добавленный в GitHub. Если проект уже скачан, откройте его папку.
+
+### 2. Настройте AI
+
+Без ключа поиск работает по правилам и возвращает шаблонные объяснения. Для OpenAI создайте файл, только если его ещё нет:
 
 ```bash
-cd backend
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-cp .env.example .env
-# Для AI заполните OPENAI_API_KEY в .env локально.
-.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8765
+if [ ! -f backend/.env ]; then
+  cp backend/.env.example backend/.env
+fi
+chmod 600 backend/.env
+nano backend/.env
 ```
 
-Во втором терминале запустите frontend из папки проекта:
+Заполните `OPENAI_API_KEY`. Параметры `OPENAI_MODEL` и `OPENAI_TIMEOUT` задают модель и таймаут в секундах. Существующий `.env` сохраните: ключ не нужно переносить в Dockerfile или frontend.
+
+### 3. Соберите и запустите
+
+Запустите Docker Desktop, если используете его, затем выполните из корня проекта:
 
 ```bash
-cd frontend
-npm ci
-npm run dev -- --host 127.0.0.1 --port 5173
+docker compose up -d --build --wait
 ```
 
-- Приложение: [localhost:5173](http://localhost:5173)
-- Swagger: [localhost:8765/docs](http://localhost:8765/docs)
-- Состояние API: [localhost:8765/api/health](http://localhost:8765/api/health)
+- **Приложение:** [localhost:8080](http://127.0.0.1:8080)
+- **Состояние API:** [localhost:8080/api/health](http://127.0.0.1:8080/api/health)
 
-Vite перенаправляет `/api` на backend. После изменения `.env` перезапустите backend. Если `.env` уже существует, не заменяйте его копированием примера.
+Frontend обращается к `/api` через Nginx в контейнере. Backend доступен внутри сети Compose; его порт не публикуется на хост. Первый запуск скачивает образы и устанавливает зависимости, последующие используют кэш.
+
+### Управление
+
+Все команды выполняются из корня проекта:
+
+```bash
+# Состояние контейнеров
+docker compose ps
+
+# Логи в реальном времени; Ctrl+C завершает просмотр логов
+docker compose logs -f
+
+# Остановка и удаление контейнеров; исходники и .env сохраняются
+docker compose down
+
+# Повторный запуск
+docker compose up -d --wait
+
+# Пересборка после изменения кода
+docker compose up -d --build --wait
+
+# Применение изменений backend/.env
+docker compose up -d --force-recreate --wait backend
+```
+
+Для запуска с логами в текущем терминале используйте `docker compose up --build`; в этом режиме `Ctrl+C` останавливает контейнеры. Если порт 8080 занят, задайте другой: `TOITAP_PORT=8081 docker compose up -d --build --wait`.
+
+### Ubuntu и HTTPS
+
+На сервере Docker также слушает `127.0.0.1:8080`. Внешний Nginx направляет запросы домена в контейнер, а Certbot продолжает обслуживать HTTPS на хосте.
+
+[Инструкция по настройке, переходу с systemd и откату](docker/README.md) · [Пример Nginx для домена](docker/nginx-host-location.conf.example).
+
+Для разработки без Docker запустите backend по [его инструкции](backend/README.md), затем выполните `npm ci` и `npm run dev` в папке `frontend` (Node.js 22.12+). Vite открывается на порту 5173 и направляет `/api` на backend порта 8765.
 
 ## Демо-запросы
 
@@ -138,7 +178,10 @@ Vite перенаправляет `/api` на backend. После изменен
 | Проверки | pytest, Node.js test runner, TypeScript и production build |
 
 ```text
+compose.yaml           Запуск frontend и backend
+docker/                Инструкции, smoke-тест и конфигурация хостового Nginx
 backend/
+  Dockerfile           Образ FastAPI
   app/main.py          API и валидация
   app/data.py          Загрузка и нормализация каталога
   app/search.py        Фильтрация, причины исключения, скоринг
@@ -147,6 +190,8 @@ backend/
   data/dataset.csv     Исходные данные
   tests/               Тесты подбора и AI-модуля
 frontend/
+  Dockerfile           Сборка React и образ Nginx
+  nginx.conf           Статика и проксирование /api
   public/images/       Статические иллюстрации категорий
   src/main.tsx         Поиск, карточки, избранное и темы
   src/api.ts           Контракты API и проверка параметров
@@ -156,22 +201,31 @@ frontend/
 
 ## Проверки
 
-```bash
-# Из корня проекта
-cd backend
-.venv/bin/python -m pytest -q
-.venv/bin/python demo.py                 # backend должен быть запущен
+После запуска контейнеров проверьте API:
 
-cd ../frontend
-npm test
-npm run build
+```bash
+curl -fsS http://127.0.0.1:8080/api/health
 ```
 
-Текущий набор: **22 backend-теста и 4 frontend-теста**. Демо проверяет шесть сценариев через работающий API. Unit-тесты не заменяют проверку реального OpenAI-запроса.
+Полная проверка frontend → Nginx → backend, изображений, подбора и разбора текста требует Python 3 на хосте, без дополнительных пакетов:
+
+```bash
+python3 docker/smoke.py
+```
+
+Backend-тесты можно выполнить внутри Docker из корня проекта:
+
+```bash
+docker compose run --rm --no-deps -e OPENAI_API_KEY= \
+  -v "$PWD/backend/tests:/app/tests:ro" \
+  backend python -m pytest -q -p no:cacheprovider
+```
+
+Текущий набор: **22 backend-теста и 4 frontend-теста**. Frontend-тесты, TypeScript и production build выполняются при сборке frontend image. Unit-тесты не заменяют проверку реального OpenAI-запроса: smoke-тест выводит источники разбора и объяснений, включая переход на шаблоны.
 
 ## Конфигурация и приватность
 
-`backend/.env` исключён из Git правилами `.gitignore`. В репозитории хранится только `.env.example` без ключа. API-ключ используется исключительно backend и не должен попадать в frontend, скриншоты или коммиты.
+`backend/.env` исключён из Git правилами `.gitignore`. В репозитории хранится только `.env.example` без ключа. `.dockerignore` исключает секреты из контекста сборки; Compose передаёт переменные backend при запуске контейнера. API-ключ используется исключительно backend и не должен попадать в frontend, скриншоты или коммиты.
 
 С включённым AI текст запроса и данные выбранных профилей отправляются в OpenAI; клиент указывает `store=False`. Избранное и выбранная тема сохраняются локально в браузере. Сервис не реализует регистрацию, бронирование, оплату или отправку сообщений подрядчикам.
 
