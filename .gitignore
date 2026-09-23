@@ -5,9 +5,25 @@ __pycache__/
 .pytest_cache/
 backend/data/candidates.json
 
+# Node / Vite
+node_modules/
+dist/
+dist-ssr/
+coverage/
+.vite/
+*.tsbuildinfo
+*.log
+
 # Secrets
 .env
 .env.*
 !.env.example
+*.pem
+*.key
 
+# Editors / OS
+.idea/
+.vscode/
+.codex/
 .DS_Store
+Thumbs.db
