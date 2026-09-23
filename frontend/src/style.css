@@ -38,8 +38,7 @@ select option { color: var(--text); background: var(--surface); }
  .category { flex-shrink: 0; }
 }
 
-/* Integration with backend: placeholder instead of stock photos, profile flags, excluded list. */
-.card-photo.placeholder { display: flex; align-items: center; justify-content: center; height: 150px; background: var(--soft); color: var(--green); border-bottom: 1px solid var(--border); }
+/* Profile flags and excluded results. */
 .profile-kind { display: inline-flex; flex-shrink: 0; align-items: center; gap: 4px; font-size: 9px; white-space: nowrap; color: var(--green); border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; }
 .profile-kind.synthetic { color: #9a6b12; border-color: #e6cf98; background: #fff8e6; }
 .app.dark .profile-kind.synthetic { color: #f3d58b; border-color: #6b5a2c; background: #2b2615; }
@@ -89,3 +88,71 @@ select option { color: var(--text); background: var(--surface); }
 .datepicker-foot { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 10px; color: var(--muted); text-align: center; }
 @media (max-width: 700px) { .datepicker-popover { width: min(296px, calc(100vw - 40px)); } }
 .brand-select::picker-icon { content: ''; width: 13px; height: 13px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat; }
+
+/* Locally bundled category artwork and the dedicated favorites view. */
+.app { display: flex; flex-direction: column; }
+header, main, footer { width: calc(100% - 96px); }
+main { flex: 1; }
+.card-photo { height: 220px; overflow: hidden; background: var(--soft); }
+.card-photo > img { display: block; transition: transform .4s ease; }
+.contractor-card:hover .card-photo > img { transform: scale(1.035); }
+.card-photo::after { content: ''; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, #09231970); pointer-events: none; }
+.photo-count, .heart, .best-badge, .artwork-label { z-index: 1; }
+.artwork-label { position: absolute; right: 12px; bottom: 45px; color: white; font-size: 8px; text-shadow: 0 1px 4px #000; }
+.saved-nav[aria-pressed="true"] { color: var(--green); background: var(--soft); border-radius: 7px; }
+.saved-page { padding-bottom: 48px; }
+.saved-page .results { padding-top: 48px; }
+footer .design-credit { margin-left: auto; }
+@media (max-width: 1000px) { header, main, footer { width: calc(100% - 56px); } }
+@media (max-width: 700px) {
+ header { width: 100%; }
+ main, footer { width: calc(100% - 40px); }
+ .card-photo { height: 235px; }
+ .saved-page .results { padding-top: 30px; }
+ footer .design-credit { margin-left: 0; width: auto; order: initial; }
+}
+
+/* Responsive layout: three desktop columns, two tablet columns, one phone column. */
+.cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.card-content { min-width: 0; }
+.card-heading h3, .description, .match-reason p { overflow-wrap: anywhere; }
+@media (min-width: 701px) and (max-width: 1100px) {
+ .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .card-content { padding: 18px; }
+ .description, .match-reason p { font-size: 12px; }
+ .match-reason { min-height: 0; }
+ header { gap: 24px; padding-inline: 0; }
+ nav { gap: 18px; }
+ .header-actions { gap: 12px; }
+}
+@media (max-width: 700px) {
+ .hero h1 { font-size: clamp(33px, 9.6vw, 51px); letter-spacing: -.055em; line-height: 1.15; }
+ .hero-spark { font-size: .65em; margin-left: 10px; vertical-align: middle; }
+ .hero-copy > p { font-size: 14px; line-height: 1.75; }
+ .desktop { display: none; }
+ .hero-visual { height: 210px; }
+ .cards { grid-template-columns: minmax(0, 1fr); }
+ .results-header h2 { font-size: clamp(23px, 6vw, 30px); }
+ .results-header p { font-size: 12px; line-height: 1.7; }
+ .header-actions { gap: 6px; }
+ .saved-nav, .icon-button, .heart { min-width: 44px; min-height: 44px; }
+ .quick-filters { position: relative; width: 100%; }
+ .quick-filters label, .filter-button, .datepicker-trigger { min-height: 44px; }
+ .datepicker { position: static; }
+ .datepicker-popover { left: 0; top: calc(100% + 10px); width: min(296px, 100%); }
+ .query-row textarea, .expanded-filters input, .expanded-filters select { font-size: 16px; }
+ .category { min-height: 44px; font-size: 11px; padding: 8px; }
+ .categories { gap: 4px; }
+ .search-title { flex-wrap: wrap; }
+ .card-footer { flex-wrap: wrap; gap: 14px; }
+ .profile-button { min-height: 44px; }
+ .match-reason p { font-size: 12px; }
+ .modal-overlay { padding: 12px; }
+ .modal { max-height: 90dvh; }
+ footer { gap: 12px 18px; font-size: 10px; padding-top: 24px; }
+ footer > span:nth-child(2) { flex-basis: 100%; }
+}
+@media (max-width: 700px) {
+ .categories { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 16px; scrollbar-width: thin; scroll-snap-type: x proximity; }
+ .category { scroll-snap-align: start; }
+}

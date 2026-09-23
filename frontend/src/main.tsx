@@ -14,6 +14,14 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   'Банкетный зал': Building2, 'Ресторан': Building2, 'Загородная площадка': Building2, 'Отель': Building2,
 };
 
+// Category artwork is illustrative, not a photograph of the contractor.
+const cardImage = (category: string) => {
+  if (['Фотограф', 'Видеограф', 'Фото и видеобудки'].includes(category)) return '/images/photography.jpg';
+  if (['Флорист', 'Декоратор', 'Подарки и сувениры'].includes(category)) return '/images/flowers.jpg';
+  if (['Банкетный зал', 'Ресторан', 'Загородная площадка', 'Отель'].includes(category)) return '/images/venue.jpg';
+  return '/images/entertainment.jpg';
+};
+
 const OUTCOME_TITLE: Record<SearchResponse['outcome'], string> = {
   found: 'Кажется, вы сработаетесь',
   no_category_in_city: 'В этом городе нет такой категории',
@@ -114,13 +122,14 @@ function App() {
         <button onClick={() => setAbout(true)}>Как это работает <ArrowUpRight size={13} /></button>
       </nav>
       <div className="header-actions">
-        <button className="saved-nav" onClick={() => setSavedView(!savedView)}><Bookmark size={17} /> <span>Избранное</span>{saved.length > 0 && <b>{saved.length}</b>}</button>
+        <button aria-label="Избранное" aria-pressed={savedView} className="saved-nav" onClick={() => setSavedView(!savedView)}><Bookmark size={17} /> <span>Избранное</span>{saved.length > 0 && <b>{saved.length}</b>}</button>
         <span className="divider" />
         <button className="icon-button" aria-label={dark ? 'Включить светлую тему' : 'Включить тёмную тему'} onClick={() => setDark(prev => { try { localStorage.setItem('toitap-theme', !prev ? 'dark' : 'light'); } catch { /* ignore */ } return !prev; })}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button>
       </div>
     </header>
 
-    <main>
+    <main className={savedView ? 'saved-page' : undefined}>
+      {!savedView && <>
       <section className="hero">
         <div className="hero-copy">
           <div className="eyebrow"><span /> МЕНЬШЕ ПОИСКА. БОЛЬШЕ СОВПАДЕНИЙ.</div>
@@ -129,7 +138,7 @@ function App() {
           <div className="hero-proof"><div className="mini-avatars"><span>А</span><span>Д</span><span>М</span></div><span><strong>66 подрядчиков</strong><br />Алматы и Астана · 17 категорий</span></div>
         </div>
         <div className="hero-visual">
-          <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1100&q=90" alt="Молодожёны в тёплом вечернем свете" />
+          <img src="/images/celebration.jpg" alt="Молодожёны в тёплом вечернем свете" />
           <span className="photo-label"><span /> МОМЕНТЫ НАЧИНАЮТСЯ С ЛЮДЕЙ</span>
           <div className="floating-note"><span className="note-icon"><Sparkles size={20} /></span><div>Не просто список.<br /><strong>Объяснение к каждому.</strong></div><span className="note-check"><Check size={16} /></span></div>
           <div className="visual-caption">Для событий, которые остаются с нами.</div>
@@ -168,6 +177,8 @@ function App() {
         </div>
       </section>
 
+      </>}
+
       <section id="results" className="results">
         <div className="results-header">
           <div>
@@ -175,17 +186,17 @@ function App() {
             <h2>{savedView ? 'Избранные подрядчики' : response ? OUTCOME_TITLE[response.outcome] : 'Подбираем…'} <span>{shown.length}</span></h2>
             <p>{savedView ? 'Сохранённые профили. Доступность на дату проверяйте новым поиском.' : `${searched.category} · ${searched.city} · ${formatDate(searched.event_date)} · ${searched.event_type} · до ${money(searched.budget)} ₸${searched.duration ? ` · ${searched.duration} ч` : ''}${searched.language ? ` · ${searched.language}` : ''}`}</p>
           </div>
-          <div className="availability"><span /><span>Только свободные на вашу дату</span></div>
+          {!savedView && <div className="availability"><span /><span>Только свободные на вашу дату</span></div>}
         </div>
 
         {!savedView && response && response.results.length > 0 && <p className="constraint-note" role="status">{response.message}</p>}
 
-        <div aria-live="polite" aria-busy={loading} className={loading ? 'cards loading' : 'cards'}>
+        <div aria-live="polite" aria-busy={!savedView && loading} className={!savedView && loading ? 'cards loading' : 'cards'}>
           {shown.map((c, i) => {
-            const Icon = CATEGORY_ICONS[c.categories[0]] ?? Sparkles;
             return <article className="contractor-card" key={c.id}>
-              <div className="card-photo placeholder">
-                <Icon size={46} strokeWidth={1.2} />
+              <div className="card-photo">
+                <img src={cardImage(c.categories[0])} alt={`Иллюстрация категории «${c.categories[0]}»`} loading="lazy" />
+                <span className="artwork-label">Фото для вдохновения</span>
                 {i === 0 && !savedView && <span className="best-badge"><Sparkles size={13} /> Лучшее совпадение</span>}
                 <button className={'heart ' + (isSaved(c.id) ? 'is-saved' : '')} aria-label={isSaved(c.id) ? `Убрать ${c.name} из избранного` : `Сохранить ${c.name}`} aria-pressed={isSaved(c.id)} onClick={() => toggleSave(c)}><Heart size={18} fill={isSaved(c.id) ? 'currentColor' : 'none'} /></button>
                 <span className="photo-count">{c.categories.join(', ')} · {c.city}</span>
@@ -210,7 +221,7 @@ function App() {
           })}
         </div>
 
-        {!loading && shown.length === 0 && <div className="empty">
+        {(savedView || !loading) && shown.length === 0 && <div className="empty">
           <Search size={30} />
           <h3>{savedView ? 'Ваши люди ещё впереди' : response ? OUTCOME_TITLE[response.outcome] : 'Загрузка…'}</h3>
           <p>{savedView ? 'Нажмите на сердечко в карточке, чтобы сохранить подрядчика.' : response?.message}</p>
@@ -221,17 +232,17 @@ function App() {
           <ul>{response.excluded.map(e => <li key={e.id}><strong>{e.name}</strong> — {e.reasons.map(r => REASON_LABEL[r]).join(', ')}</li>)}</ul>
         </details>}
 
-        <div className="results-note"><ShieldCheck size={16} /><span>Занятые на дату, дороже бюджета и не берущие ваш формат в выдачу не попадают.</span></div>
+        {!savedView && <div className="results-note"><ShieldCheck size={16} /><span>Занятые на дату, дороже бюджета и не берущие ваш формат в выдачу не попадают.</span></div>}
       </section>
 
-      <section className="how-strip">
+      {!savedView && <section className="how-strip">
         <div><span className="step-number">01</span><div><h4>Расскажите о событии</h4><p>Текстом или фильтрами.</p></div></div><ArrowRight size={20} />
         <div><span className="step-number">02</span><div><h4>Получите до трёх</h4><p>Только свободные и подходящие.</p></div></div><ArrowRight size={20} />
         <div><span className="step-number">03</span><div><h4>Поймите почему</h4><p>Объяснение на фактах к каждой карточке.</p></div></div>
-      </section>
+      </section>}
     </main>
 
-    <footer><span className="footer-brand">toitap.</span><span>Хорошие события начинаются с людей.</span><span>66 профилей датасета · 13 синтетических помечены</span><span>© 2026 ToiTap</span></footer>
+    <footer><span className="footer-brand">toitap.</span><span>Хорошие события начинаются с людей.</span><span className="design-credit">Designed by <strong>Qadam Tech</strong></span><span>© 2026 ToiTap</span></footer>
 
     {(selected || about) && <div className="modal-overlay" onClick={() => { setSelected(null); setAbout(false); }}>
       <section className="modal" role="dialog" aria-modal="true" aria-label={selected?.name || 'Как работает подбор'} onClick={e => e.stopPropagation()}>
