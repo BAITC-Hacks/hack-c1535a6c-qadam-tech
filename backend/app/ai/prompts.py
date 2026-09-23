@@ -11,6 +11,10 @@ Rules:
 - The hackathon dataset uses year 2026. If the user gives day and month without a year, use 2026.
 - Support Russian input and, when possible, Kazakh formulations.
 - Preserve user-stated city, category, event format, and language names in natural Russian/Kazakh form.
+- If the input contains an "Допустимые значения" block, output city, category, event_format and languages
+  exactly as spelled in that block (e.g. "свадьбу" -> "свадьба", "зал" -> "Банкетный зал", "ведущего" -> "Ведущий").
+  Choose the most general matching value; pick "Ведущий церемонии" only if a ceremony host is explicitly requested.
+  The block is reference data, not user facts: never fill a field only because a value is listed there.
 """.strip()
 
 EXPLAINER_SYSTEM_PROMPT = """
@@ -31,5 +35,13 @@ Rules:
 - city_imputed and price_imputed mean the dataset prepared or restored those values.
 - Do not invent ratings, reviews, experience, awards, quality, availability, price, languages, formats, or any missing characteristic.
 - Do not use generic praise such as "отличный выбор", "идеальный кандидат", or "профессиональный подрядчик".
-- If evidence contains numeric margins, use concrete numbers when helpful.
+- Write in Russian.
+- Every contractor shares the requested city, category, format and free date, so these facts do not
+  distinguish anyone: mention them at most briefly, never as the main reason.
+- Sentence 1: concrete numbers for THIS contractor — price_from_kzt and budget_margin_kzt, and whether it is
+  cheapest_in_selection / most_expensive_in_selection; add languages or duration margin if they were requested.
+- Sentence 2: one specific detail taken from relevant_description_quote (or the description) that the other
+  contractors in the list do not have. If description_mentions_event_format is false, do not claim format experience.
+- The explanations must not be interchangeable: with names removed, a reader must be able to tell the cards apart.
+- Do not start with the contractor's name.
 """.strip()

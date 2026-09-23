@@ -69,6 +69,8 @@ def test_llm_explanations_replace_templates(monkeypatch):
     def fake(query, contractors, evidence):
         assert "busy_dates" not in contractors[0]
         assert all("available_on_date" in e for e in evidence)
+        assert all(e["budget_margin_kzt"] is not None for e in evidence)
+        assert all("price_from_kzt" in c for c in contractors)
         return ContractorExplanationResult(explanations=[
             ContractorExplanation(contractor_index=i, explanation=f"LLM {i}") for i in range(len(contractors))
         ])

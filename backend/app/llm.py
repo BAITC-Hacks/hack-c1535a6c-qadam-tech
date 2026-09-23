@@ -67,7 +67,10 @@ def _call_llm(req: dict, results: list[dict], candidates_by_id: dict[str, dict])
     stems = FORMAT_STEMS.get(req["event_type"].lower(), [req["event_type"].lower()])
     contractors, evidence = [], []
     for r in results:
-        c = candidates_by_id[r["id"]]
+        raw = candidates_by_id[r["id"]]
+        # app/ai ожидает исходные имена полей датасета
+        c = {**{k: v for k, v in raw.items() if k not in ("price", "name")},
+             "price_from_kzt": raw["price"], "anon_name": raw["name"]}
         ev = build_evidence(query, c)
         others = [p["price_from_kzt"] for p in results if p["id"] != r["id"]]
         ev.update({
@@ -100,8 +103,13 @@ def parse_text(text: str, facets: dict) -> dict:
         try:
             from .ai import parse_search_query
 
-            intent = parse_search_query(text)
-            result = {
+            allowed = (
+                f"\n\nДопустимые значения:\nгорода: {', '.join(facets['cities'])}\n"
+                f"категории: {', '.join(facets['categories'])}\n"
+                f"форматы: {', '.join(facets['event_formats'])}\nязыки: {', '.join(facets['languages'])}"
+            )
+            intent = parse_search_query(text + allowed)
+            llm_result = {
                 "city": _snap(intent.city, facets["cities"]),
                 "event_date": intent.date,
                 "event_type": _snap(intent.event_format, facets["event_formats"]),
@@ -109,8 +117,11 @@ def parse_text(text: str, facets: dict) -> dict:
                 "budget": intent.budget_kzt,
                 "duration": intent.duration_hours,
                 "language": _snap(intent.languages[0], facets["languages"]) if intent.languages else None,
-                "source": "llm",
             }
+            # гибрид: что LLM не распознала — добираем правилами
+            rules = rules_parser.parse(text, facets)
+            result = {k: v if v is not None else rules[k] for k, v in llm_result.items()}
+            result["source"] = "llm"
         except Exception as exc:
             log.warning("LLM parse failed, using rules: %s", exc)
 
@@ -139,4 +150,5 @@ def _snap(value: str | None, options: list[str]) -> str | None:
     if exact:
         return exact
     matches = [o for o in options if o.lower()[:5] in v or v[:5] in o.lower()]
-    return max(matches, key=len) if matches else None
+    # самое близкое по длине: «ведущий» -> «Ведущий», а не «Ведущий церемонии»
+    return min(matches, key=lambda o: (abs(len(o) - len(v)), o)) if matches else None
