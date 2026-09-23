@@ -13,7 +13,7 @@
 from collections import Counter
 from datetime import date
 
-from . import ai
+from . import explain
 
 # стемы для поиска упоминаний формата мероприятия в описании
 FORMAT_STEMS = {
@@ -151,11 +151,13 @@ def search(candidates: list[dict], req: dict, limit: int = 3) -> dict:
             "languages": c["languages"],
             "event_formats": c["event_formats"],
             "max_hours": c["max_hours"],
+            "description": c["description"],
+            "busy_dates": c["busy_dates"],
             "is_synthetic": c["synthetic"],
             "price_imputed": c["price_imputed"],
             "city_imputed": c["city_imputed"],
             "score": s,
-            "explanation": ai.explain_match(req, c, s, [p for p in peers if p["id"] != c["id"]]),
+            "explanation": explain.explain_match(req, c, s, [p for p in peers if p["id"] != c["id"]]),
         })
 
     message = f"Подобрано {len(results)} из {len(pool)} подрядчиков категории «{req['category']}» в {req['city']}."

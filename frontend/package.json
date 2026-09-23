@@ -1,5 +1,5 @@
 {
-  "name": "toitap-frontend-2",
+  "name": "toitap-frontend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --experimental-strip-types --test src/data.test.ts"
+    "test": "node --experimental-strip-types --test src/api.test.ts"
   },
   "keywords": [],
   "author": "",

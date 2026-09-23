@@ -27,3 +27,6 @@ coverage/
 .codex/
 .DS_Store
 Thumbs.db
+
+# Local browser testing artifacts
+.playwright-mcp/

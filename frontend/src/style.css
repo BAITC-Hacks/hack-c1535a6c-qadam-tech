@@ -37,3 +37,16 @@ select option { color: var(--text); background: var(--surface); }
  .search-button { width: 100%; }
  .category { flex-shrink: 0; }
 }
+
+/* Integration with backend: placeholder instead of stock photos, profile flags, excluded list. */
+.card-photo.placeholder { display: flex; align-items: center; justify-content: center; height: 150px; background: var(--soft); color: var(--green); border-bottom: 1px solid var(--border); }
+.profile-kind { display: inline-flex; flex-shrink: 0; align-items: center; gap: 4px; font-size: 9px; white-space: nowrap; color: var(--green); border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; }
+.profile-kind.synthetic { color: #9a6b12; border-color: #e6cf98; background: #fff8e6; }
+.app.dark .profile-kind.synthetic { color: #f3d58b; border-color: #6b5a2c; background: #2b2615; }
+.source-badge { margin-left: auto; font-style: normal; font-size: 8px; padding: 2px 6px; border-radius: 4px; background: var(--green); color: var(--button-text); }
+.categories { flex-wrap: wrap; overflow: visible; }
+.category { white-space: nowrap; }
+.excluded { margin-top: 18px; font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+.excluded summary { cursor: pointer; color: var(--secondary); font-weight: 600; }
+.excluded ul { margin: 10px 0 0; padding-left: 18px; line-height: 1.8; }
+.results > .constraint-note { margin: 0 0 16px; }

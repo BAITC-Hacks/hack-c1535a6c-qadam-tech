@@ -27,7 +27,8 @@ def get_openai_client() -> OpenAI:
         raise MissingOpenAIKeyError(
             "OPENAI_API_KEY is not set. Add it to the environment or .env before using AI functions."
         )
-    return OpenAI(api_key=api_key)
+    # DoD: ответ до 10 секунд — не ждём LLM дольше, дальше сработает шаблонный fallback
+    return OpenAI(api_key=api_key, timeout=float(os.getenv("OPENAI_TIMEOUT", "7")), max_retries=0)
 
 
 def parse_text_response(
